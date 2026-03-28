@@ -1,0 +1,28 @@
+{
+  "HillClimb": {
+    "tilt_sensitivity": 1.0,
+    "deadzone": 0.12,
+    "flick_threshold": 0.06,
+    "swipe_threshold": 0.12
+  },
+  "Subway": {
+    "tilt_sensitivity": 1.0,
+    "deadzone": 0.15,
+    "flick_threshold": 0.06,
+    "swipe_threshold": 0.1,
+    "center_x": 0.5825815796852112,
+    "center_y": 0.511167049407959
+  },
+  "TempleRun": {
+    "tilt_sensitivity": 1.0,
+    "deadzone": 0.15,
+    "flick_threshold": 0.06,
+    "swipe_threshold": 0.1
+  },
+  "CarRacing": {
+    "tilt_sensitivity": 1.0,
+    "deadzone": 0.1,
+    "flick_threshold": 0.06,
+    "swipe_threshold": 0.1
+  }
+}
