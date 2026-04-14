@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand G - Gesture Control System</title>
+    <meta name="description" content="A powerful desktop application to control your computer with hand gestures using AI and MediaPipe.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --bg: #030712;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --text: #f3f4f6;
+            --text-dim: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% -20%, #1e1b4b, transparent),
+                        radial-gradient(circle at 0% 100%, #0f172a, transparent);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        header {
+            padding: 2rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .hero {
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .demo-section {
+            margin-top: 4rem;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            background: #000;
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        #output_canvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+        }
+
+        .demo-status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 8rem;
+            padding-bottom: 8rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(99, 102, 241, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; }
+            .hero { padding: 4rem 0 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-bg"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">HAND G</div>
+            <div class="nav-links">
+                <a href="https://github.com/annkitgupta48-hue/hand-G-App" class="btn btn-secondary" target="_blank">GitHub</a>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>Master Your PC <br>with Hand Gestures</h1>
+            <p>A sophisticated AI-powered system that turns your webcam into a touchless controller. Control mouse, volume, media, and more with zero hardware.</p>
+            <div class="cta-group">
+                <button class="btn btn-primary" onclick="scrollToDemo()">Try Web Demo</button>
+                <a href="#" class="btn btn-secondary">Download for Windows (.exe)</a>
+            </div>
+        </section>
+
+        <section class="demo-section" id="demo">
+            <h2>Live Hand Tracking Demo</h2>
+            <p style="margin-bottom: 2rem; color: var(--text-dim);">Enable your camera to see the landmarker in action. (Note: System control requires the Desktop App)</p>
+            
+            <div class="demo-container">
+                <div id="loading" class="loading-overlay">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem; font-size: 0.8rem;">Loading AI Models...</p>
+                </div>
+                <video id="webcam" autoplay playsinline></video>
+                <canvas id="output_canvas"></canvas>
+            </div>
+            <div class="demo-status" id="status">Status: Waiting for Camera...</div>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <h3>☝️ Precision Control</h3>
+                <p>Move your mouse cursor with extreme accuracy using advanced landmark smoothing and mapped interaction zones.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🖖 Smart Gestures</h3>
+                <p>Built-in support for clicking, dragging, scrolling, volume control, and media playback out of the box.</p>
+            </div>
+            <div class="feature-card">
+                <h3>⚡ Low Latency</h3>
+                <p>Optimized with MediaPipe Tasks Vision for real-time tracking that feels smooth and responsive on any machine.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- MediaPipe Script -->
+    <script type="module">
+        import { HandLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+        const video = document.getElementById("webcam");
+        const canvasElement = document.getElementById("output_canvas");
+        const canvasCtx = canvasElement.getContext("2d");
+        const statusEl = document.getElementById("status");
+        const loadingOverlay = document.getElementById("loading");
+
+        let handLandmarker = undefined;
+        let runningMode = "VIDEO";
+
+        // Initialize HandLandmarker
+        const createHandLandmarker = async () => {
+            const vision = await FilesetResolver.forVisionTasks(
+                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+            );
+            handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
+                    delegate: "GPU"
+                },
+                runningMode: runningMode,
+                numHands: 2
+            });
+            loadingOverlay.style.opacity = "0";
+            setTimeout(() => loadingOverlay.style.display = "none", 500);
+            statusEl.innerText = "Status: AI Models Ready. Please enable camera.";
+            enableCam();
+        };
+        createHandLandmarker();
+
+        function enableCam() {
+            if (!handLandmarker) return;
+
+            const constraints = { video: true };
+            navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+                video.srcObject = stream;
+                video.addEventListener("loadeddata", predictWebcam);
+                statusEl.innerText = "Status: Active Tracking";
+            }).catch(err => {
+                statusEl.innerText = "Status: Camera Access Denied";
+                statusEl.style.color = "#f87171";
+            });
+        }
+
+        let lastVideoTime = -1;
+        let results = undefined;
+        const drawingUtils = new DrawingUtils(canvasCtx);
+
+        async function predictWebcam() {
+            canvasElement.width = video.videoWidth;
+            canvasElement.height = video.videoHeight;
+
+            let startTimeMs = performance.now();
+            if (lastVideoTime !== video.currentTime) {
+                lastVideoTime = video.currentTime;
+                results = handLandmarker.detectForVideo(video, startTimeMs);
+            }
+
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            if (results.landmarks) {
+                for (const landmarks of results.landmarks) {
+                    drawingUtils.drawConnectors(landmarks, HandLandmarker.HAND_CONNECTIONS, {
+                        color: "#6366f1",
+                        lineWidth: 5
+                    });
+                    drawingUtils.drawLandmarks(landmarks, { color: "#ffffff", lineWidth: 2 });
+                }
+            }
+            window.requestAnimationFrame(predictWebcam);
+        }
+
+        window.scrollToDemo = () => {
+            document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

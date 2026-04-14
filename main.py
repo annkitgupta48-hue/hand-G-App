@@ -8,12 +8,23 @@ import tkinter as tk
 from threading import Thread
 import math
 import time
+import sys
+import os
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 # PyAutoGUI settings
 pyautogui.FAILSAFE = False
 
 # Initialize MediaPipe HandLandmarker Tasks API with High Precision Settings
-base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
+base_options = python.BaseOptions(model_asset_path=resource_path('hand_landmarker.task'))
 options = vision.HandLandmarkerOptions(
     base_options=base_options,
     num_hands=1,
